@@ -1,12 +1,18 @@
 const puppeteer = require('puppeteer');
 
 const PRIZE_CHECKER = 'https://www.nsandi.com/prize-checker';
-const AREA_PATTERNS = process.argv.slice(2).map(location => new RegExp(location, 'i'));
+
+const AREAS = process.argv.slice(2);
+const AREA_PATTERNS = AREAS.map(location => new RegExp(location, 'i'));
 
 (async () => {
   const browser = await puppeteer.launch({ headless: false});
   const page = await browser.newPage();
   await page.goto(PRIZE_CHECKER);
+
+  const description = await page.evaluate(() => document.querySelector('#high-value-winners').textContent);
+  outputDescription(description);
+
   await page.click('#high-value-winners');
 
   let moreResults = true;
@@ -49,6 +55,10 @@ const AREA_PATTERNS = process.argv.slice(2).map(location => new RegExp(location,
 
   await browser.close();
 })();
+
+const outputDescription = description => {
+  console.log(`Checking ${description.trim()} in areas (${AREAS.join(', ')})...\n`);
+};
 
 const filterWinners = winners => {
   return winners.filter(winner => {
